@@ -81,9 +81,12 @@ PrefabInstance:
       addedObject: {fileID: 5235845773965629153}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 9938f59c0b4d1974997b77003eec9348, type: 3}
       insertIndex: -1
+      addedObject: {fileID: 1361537556334013508}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 9938f59c0b4d1974997b77003eec9348, type: 3}
+      insertIndex: -1
       addedObject: {fileID: 6710291082754022835}
   m_SourcePrefab: {fileID: 100100000, guid: 9938f59c0b4d1974997b77003eec9348, type: 3}
---- !u!1 &5899390047874670818 stripped
+--- !u!1 &1297723504501888457 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 9938f59c0b4d1974997b77003eec9348, type: 3}
   m_PrefabInstance: {fileID: 2216643441336494232}
@@ -94,7 +97,7 @@ BoxCollider:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5899390047874670818}
+  m_GameObject: {fileID: 1297723504501888457}
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -109,13 +112,34 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.019615706, y: 0.019615702, z: 0.004787401}
   m_Center: {x: 0, y: 1.8027852e-17, z: 0.0025371944}
+--- !u!114 &1361537556334013508
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1297723504501888457}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalObjectIdHash: 38847345
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
 --- !u!114 &6710291082754022835
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5899390047874670818}
+  m_GameObject: {fileID: 1297723504501888457}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1297558f98d08d344ae752775a83679e, type: 3}

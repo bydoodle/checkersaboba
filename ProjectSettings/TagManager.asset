@@ -4,16 +4,16 @@
 TagManager:
   serializedVersion: 2
   tags:
-  - black
   - red
+  - black
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - red
+  - black
   - Water
   - UI
-  - black
+  - red
   - 
   - 
   - 

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using UnityEngine;
+using static UnityEditor.Experimental.GraphView.GraphView;
 using Unity.Netcode;
 using Unity.Netcode.Components;
 using System;
@@ -14,7 +15,6 @@ public class BlackChecker : NetworkBehaviour
     Vector3 checkPos;
     Vector3 checkEnemyPos;
     int clickCount = 0;
-    int enemyID;
 
     private void Start()
     {
@@ -47,7 +47,7 @@ public class BlackChecker : NetworkBehaviour
                 }
                 else if (Physics.CheckSphere(checkPos, .9f) && clickCount > 2)
                 {
-                    StartPosition();
+                    StartPositionRPC();
                 }
             }
             else if (raycastHit.point.x > transform.position.x + .5 && raycastHit.point.x < transform.position.x + 1.5 && raycastHit.point.z < transform.position.z - .5 && raycastHit.point.z > transform.position.z - 1.5 && !checkQueen)
@@ -61,7 +61,7 @@ public class BlackChecker : NetworkBehaviour
                 }
                 else if (Physics.CheckSphere(checkPos, .9f) && clickCount > 2)
                 {
-                    StartPosition();
+                    StartPositionRPC();
                 }
             }
             else if (raycastHit.point.x > transform.position.x + 1.5 && raycastHit.point.x < transform.position.x + 2.5 && raycastHit.point.z < transform.position.z - 1.5 && raycastHit.point.z > transform.position.z - 2.5 && !checkQueen)
@@ -84,7 +84,7 @@ public class BlackChecker : NetworkBehaviour
                 }
                 else if (clickCount > 2)
                 {
-                    StartPosition();
+                    StartPositionRPC();
                 }
             }
             else if (raycastHit.point.x < transform.position.x - 1.5 && raycastHit.point.x > transform.position.x - 2.5 && raycastHit.point.z < transform.position.z - 1.5 && raycastHit.point.z > transform.position.z - 2.5 && !checkQueen)
@@ -107,16 +107,16 @@ public class BlackChecker : NetworkBehaviour
                 }
                 else if (clickCount > 2)
                 {
-                    StartPosition();
+                    StartPositionRPC();
                 }
             }
             else if (clickCount > 2 && !checkQueen)
             {
-                StartPosition();
+                StartPositionRPC();
             }
             else if (clickCount > 2 && checkQueen)
             {
-                QueenMovement(raycastHit.point.x, raycastHit.point.z);
+                QueenMovementRPC(raycastHit.point.x, raycastHit.point.z);
             }
         }
 
@@ -133,16 +133,12 @@ public class BlackChecker : NetworkBehaviour
         return hitColliders;
     }
 
-    private void StartPosition()
-    {
-        transform.position = new Vector3(transform.position.x, 0, transform.position.z);
-        isActive = false;
-        clickCount = 0;
-    }
+    [Rpc(SendTo.Server)]
 
-    private void QueenMovement(float xClick, float zClick)
+    private void QueenMovementRPC(float xClick, float zClick)
     {
         int moveCount = 0;
+        int enemyCount = 0;
 
         xClick = Mathf.Floor(xClick) + .5f;
         zClick = Mathf.Floor(zClick) + .5f;
@@ -150,14 +146,31 @@ public class BlackChecker : NetworkBehaviour
         Debug.Log(xClick + ", " + zClick);
 
         checkPos = new Vector3(xClick, transform.position.y, zClick);
-        if (Physics.CheckSphere(checkPos, .9f)) StartPosition();
+        if (Physics.CheckSphere(checkPos, .9f)) StartPositionRPC();
 
         if (transform.position.x > xClick && transform.position.z < zClick && clickCount > 2)
         {
-            while (transform.position.x - moveCount > xClick)
+            for (int i = 0; i < transform.position.x - xClick; i++)
             {
-                Debug.Log("test");
+                checkEnemyPos = new Vector3(transform.position.x - i, transform.position.y, transform.position.z + i);
+                Collider[] enemyInRange = EnemyInRange(checkEnemyPos, .9f, 6);
+                if (enemyInRange.Length > 0)
+                {
+                    for (int j = 0; j < enemyInRange.Length; j++)
+                    {
+                        if (enemyInRange[j].tag == "red")
+                        {
+                            enemyCount++;
+                        }
+                        else if (enemyInRange[j].tag == "black") StartPositionRPC();
+                    }
+                }
+            }
 
+            if (enemyCount > 1) StartPositionRPC();
+
+            while (transform.position.x - moveCount > xClick && enemyCount < 2)
+            {
                 checkEnemyPos = new Vector3(transform.position.x - moveCount, transform.position.y, transform.position.z + moveCount);
                 Collider[] enemyInRange = EnemyInRange(checkEnemyPos, .9f, 6);
                 if (enemyInRange.Length > 0)
@@ -174,33 +187,161 @@ public class BlackChecker : NetworkBehaviour
             }
             clickCount = 0;
             isActive = false;
-            if (-(transform.position.x - xClick) == (transform.position.z - zClick))
+            if (-(transform.position.x - xClick) == (transform.position.z - zClick) && enemyCount < 2)
             {
                 transform.position = new Vector3(xClick, 0, zClick);
             }
-        }
-        else if (transform.position.x < xClick && transform.position.z < zClick && clickCount > 2)
-        {
 
-        }
-        else if (transform.position.x > xClick && transform.position.z > zClick && clickCount > 2)
+            enemyCount = 0;
+        } else if (transform.position.x < xClick && transform.position.z < zClick && clickCount > 2)
         {
+            for (int i = 0; i < xClick - transform.position.x; i++)
+            {
+                checkEnemyPos = new Vector3(transform.position.x + i, transform.position.y, transform.position.z + i);
+                Collider[] enemyInRange = EnemyInRange(checkEnemyPos, .9f, 6);
+                if (enemyInRange.Length > 0)
+                {
+                    for (int j = 0; j < enemyInRange.Length; j++)
+                    {
+                        if (enemyInRange[j].tag == "red")
+                        {
+                            enemyCount++;
+                        }
+                        else if (enemyInRange[j].tag == "black") StartPositionRPC();
+                    }
+                }
+            }
 
-        }
-        else if (transform.position.x < xClick && transform.position.z > zClick && clickCount > 2)
-        {
+            if (enemyCount > 1) StartPositionRPC();
 
-        }
-        else if (clickCount > 2)
+            while (xClick - moveCount > transform.position.x && enemyCount < 2)
+            {
+                checkEnemyPos = new Vector3(transform.position.x + moveCount, transform.position.y, transform.position.z + moveCount);
+                Collider[] enemyInRange = EnemyInRange(checkEnemyPos, .9f, 6);
+                if (enemyInRange.Length > 0)
+                {
+                    for (int i = 0; i < enemyInRange.Length; i++)
+                    {
+                        if (enemyInRange[i].tag == "red")
+                        {
+                            Destroy(enemyInRange[i].gameObject);
+                        }
+                    }
+                }
+                moveCount++;
+            }
+            clickCount = 0;
+            isActive = false;
+            if ((transform.position.x - xClick) == (transform.position.z - zClick) && enemyCount < 2)
+            {
+                transform.position = new Vector3(xClick, 0, zClick);
+            }
+
+            enemyCount = 0;
+        } else if (transform.position.x > xClick && transform.position.z > zClick && clickCount > 2)
         {
-            StartPosition();
+            for (int i = 0; i < transform.position.x - xClick; i++)
+            {
+                checkEnemyPos = new Vector3(transform.position.x - i, transform.position.y, transform.position.z - i);
+                Collider[] enemyInRange = EnemyInRange(checkEnemyPos, .9f, 6);
+                if (enemyInRange.Length > 0)
+                {
+                    for (int j = 0; j < enemyInRange.Length; j++)
+                    {
+                        if (enemyInRange[j].tag == "red")
+                        {
+                            enemyCount++;
+                        }
+                        else if (enemyInRange[j].tag == "black") StartPositionRPC();
+                    }
+                }
+            }
+
+            if (enemyCount > 1) StartPositionRPC();
+
+            while (transform.position.x - moveCount > xClick && enemyCount < 2)
+            {
+                checkEnemyPos = new Vector3(transform.position.x - moveCount, transform.position.y, transform.position.z - moveCount);
+                Collider[] enemyInRange = EnemyInRange(checkEnemyPos, .9f, 6);
+                if (enemyInRange.Length > 0)
+                {
+                    for (int i = 0; i < enemyInRange.Length; i++)
+                    {
+                        if (enemyInRange[i].tag == "red")
+                        {
+                            Destroy(enemyInRange[i].gameObject);
+                        }
+                    }
+                }
+                moveCount++;
+            }
+            clickCount = 0;
+            isActive = false;
+            if ((transform.position.x - xClick) == (transform.position.z - zClick) && enemyCount < 2)
+            {
+                transform.position = new Vector3(xClick, 0, zClick);
+            }
+
+            enemyCount = 0;
+        } else if (transform.position.x < xClick && transform.position.z > zClick && clickCount > 2)
+        {
+            for (int i = 0; i < xClick - transform.position.x; i++)
+            {
+                checkEnemyPos = new Vector3(transform.position.x + i, transform.position.y, transform.position.z - i);
+                Collider[] enemyInRange = EnemyInRange(checkEnemyPos, .9f, 6);
+                if (enemyInRange.Length > 0)
+                {
+                    for (int j = 0; j < enemyInRange.Length; j++)
+                    {
+                        if (enemyInRange[j].tag == "red")
+                        {
+                            enemyCount++;
+                        }
+                        else if (enemyInRange[j].tag == "black") StartPositionRPC();
+                    }
+                }
+            }
+
+            if (enemyCount > 1) StartPositionRPC();
+
+            while (xClick - moveCount > transform.position.x && enemyCount < 2)
+            {
+                checkEnemyPos = new Vector3(transform.position.x + moveCount, transform.position.y, transform.position.z - moveCount);
+                Collider[] enemyInRange = EnemyInRange(checkEnemyPos, .9f, 6);
+                if (enemyInRange.Length > 0)
+                {
+                    for (int i = 0; i < enemyInRange.Length; i++)
+                    {
+                        if (enemyInRange[i].tag == "red")
+                        {
+                            Destroy(enemyInRange[i].gameObject);
+                        }
+                    }
+                }
+                moveCount++;
+            }
+            clickCount = 0;
+            isActive = false;
+            if (-(transform.position.x - xClick) == (transform.position.z - zClick) && enemyCount < 2)
+            {
+                transform.position = new Vector3(xClick, 0, zClick);
+            }
+
+            enemyCount = 0;
+        } else if (clickCount > 2)
+        {
+            StartPositionRPC();
         }
 
 
     }
 
-    private void CheckPositions()
-    {
+    [Rpc(target: SendTo.ClientsAndHost)]
 
+    private void StartPositionRPC()
+    {
+        transform.position = new Vector3(transform.position.x, 0, transform.position.z);
+        isActive = false;
+        clickCount = 0;
     }
 }
